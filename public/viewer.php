@@ -35,7 +35,7 @@ csrf();
 <html lang="en" data-theme="<?= getTheme() ?>">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title><?= h($formName) ?> – <?= APP_NAME ?></title>
 <link rel="stylesheet" href="/style.css">
 <style>
@@ -46,7 +46,7 @@ csrf();
 <div class="viewer-page">
   <!-- ── Iframe ─────────────────────────────────────────────────────────── -->
   <div class="viewer-iframe-wrap">
-    <div id="frameContainer" style="flex:1;display:flex;flex-direction:column;height:100%">
+    <div id="frameContainer" style="flex:1;display:flex;flex-direction:column;height:100%;position:relative">
       <iframe
         id="formIframe"
         class="viewer-iframe"
@@ -55,6 +55,15 @@ csrf();
         loading="eager"
         title="<?= h($formName) ?>"
       ></iframe>
+      <!-- Transparent overlay: blocks right-click, copy and zoom inside the iframe -->
+      <div id="iframeShield" style="
+        position:absolute;inset:0;
+        z-index:5;
+        background:transparent;
+        user-select:none;
+        -webkit-user-select:none;
+        touch-action:pan-x pan-y;
+      "></div>
     </div>
 
     <!-- ── Expired overlay ──────────────────────────────────────────────── -->
@@ -141,6 +150,34 @@ csrf();
 
   tick(); // Show immediately
   const interval = setInterval(tick, 1000);
+})();
+
+// ── Iframe shield: block zoom & copy ─────────────────────────────────────────
+(function () {
+  const shield = document.getElementById('iframeShield');
+  if (!shield) return;
+
+  // Block right-click context menu
+  shield.addEventListener('contextmenu', e => e.preventDefault());
+
+  // Block copy via keyboard (Ctrl+C / Cmd+C)
+  document.addEventListener('keydown', function (e) {
+    const ctrl = e.ctrlKey || e.metaKey;
+    // Block copy
+    if (ctrl && e.key === 'c') { e.preventDefault(); return; }
+    // Block zoom shortcuts: Ctrl +, Ctrl -, Ctrl 0
+    if (ctrl && (e.key === '+' || e.key === '-' || e.key === '=' || e.key === '0')) {
+      e.preventDefault();
+    }
+  });
+
+  // Block wheel-based zoom (Ctrl + scroll)
+  document.addEventListener('wheel', function (e) {
+    if (e.ctrlKey) e.preventDefault();
+  }, { passive: false });
+
+  // Block pinch-to-zoom via gesturestart (Safari)
+  document.addEventListener('gesturestart', e => e.preventDefault());
 })();
 </script>
 </body>

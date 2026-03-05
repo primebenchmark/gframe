@@ -694,15 +694,18 @@ tr:hover td {
   justify-content: center;
   gap: .8rem;
   font-weight: 800;
-  font-size: 1.5rem;
+  /* Fluid font size: shrinks for long names, max 1.5rem */
+  font-size: clamp(.85rem, 2.5vw, 1.5rem);
   width: 100%;
   text-align: center;
+  flex-wrap: wrap;
 }
 
 .viewer-form-name span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  /* Allow text to wrap so long names are never clipped */
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.25;
   background: linear-gradient(135deg, var(--primary-h), var(--accent));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
