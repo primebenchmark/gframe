@@ -74,7 +74,7 @@ csrf();
   </div>
 
   <!-- ── Iframe ─────────────────────────────────────────────────────────── -->
-  <div id="frameContainer" style="flex:1;display:flex;flex-direction:column">
+  <div id="frameContainer" class="viewer-frame-mask" style="flex:1;display:flex;flex-direction:column">
     <iframe
       id="formIframe"
       class="viewer-iframe"

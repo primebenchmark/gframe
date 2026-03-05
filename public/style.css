@@ -958,3 +958,44 @@ tr:hover td {
     padding: 1.2rem;
   }
 }
+
+/* ── Google Forms Footer Hiding ────────────────────────────────────────── */
+/* 
+   IMPORTANT: This CSS will ONLY work if the Google Form is served via a 
+   SAME-ORIGIN proxy. Browser security (SOP) prevents parent styles from 
+   affecting cross-domain iframe content.
+*/
+.freebirdFormviewerViewFooterDisclaimer,
+.freebirdFormviewerViewFooterFooter,
+.freebirdFormviewerViewFooterFooterContainer,
+div[role="contentinfo"],
+.v6S9S {
+  display: none !important;
+}
+
+/* ── Visual Overlap Trick (No Proxy Required) ────────────────────────── */
+/* 
+   This hides the bottom 55px of the iframe container, which effectively 
+   occludes the Google Forms 'Report Abuse' and branding footer.
+*/
+.viewer-frame-mask {
+  position: relative;
+  overflow: hidden;
+}
+
+.viewer-frame-mask::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 150px !important;
+  background: var(--bg) !important;
+  pointer-events: none;
+  z-index: 9999 !important;
+  display: block !important;
+  /* box-shadow: 0 -30px 40px var(--bg); */
+  /* Deeper shadow for 90px height */
+  border-top: 2px solid red;
+  /* DIAGNOSTIC: Remove this once you see it working */
+}
