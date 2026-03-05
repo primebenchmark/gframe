@@ -16,7 +16,7 @@
   --radius: 14px;
   --radius-sm: 8px;
   --radius-lg: 22px;
-  --topbar-h: 56px;
+  --topbar-h: 155px;
   font-size: 15px;
 
   /* Default Dark Theme */
@@ -651,34 +651,52 @@ tr:hover td {
 
 /* ── Iframe viewer ─────────────────────────────────────────────────────────── */
 .viewer-page {
-  display: flex;
-  flex-direction: column;
+  position: relative;
   height: 100vh;
   overflow: hidden;
 }
 
+.viewer-iframe-wrap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .viewer-topbar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
   height: var(--topbar-h);
   background: var(--bg-glass);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border);
+  border-top: 1px solid var(--border);
   display: flex;
-  align-items: center;
-  padding: 0 1.5rem;
-  gap: 1rem;
-  flex-shrink: 0;
+  flex-direction: column;
+  justify-content: center;
+  padding: 1.5rem 2rem;
+  gap: 1.25rem;
   z-index: 10;
 }
 
-.viewer-form-name {
-  flex: 1;
-  font-weight: 700;
-  font-size: 1rem;
+.viewer-topbar-row {
   display: flex;
   align-items: center;
-  gap: .6rem;
-  overflow: hidden;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.viewer-form-name {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .8rem;
+  font-weight: 800;
+  font-size: 1.5rem;
+  width: 100%;
+  text-align: center;
 }
 
 .viewer-form-name span {
@@ -957,45 +975,4 @@ tr:hover td {
   .admin-main {
     padding: 1.2rem;
   }
-}
-
-/* ── Google Forms Footer Hiding ────────────────────────────────────────── */
-/* 
-   IMPORTANT: This CSS will ONLY work if the Google Form is served via a 
-   SAME-ORIGIN proxy. Browser security (SOP) prevents parent styles from 
-   affecting cross-domain iframe content.
-*/
-.freebirdFormviewerViewFooterDisclaimer,
-.freebirdFormviewerViewFooterFooter,
-.freebirdFormviewerViewFooterFooterContainer,
-div[role="contentinfo"],
-.v6S9S {
-  display: none !important;
-}
-
-/* ── Visual Overlap Trick (No Proxy Required) ────────────────────────── */
-/* 
-   This hides the bottom 55px of the iframe container, which effectively 
-   occludes the Google Forms 'Report Abuse' and branding footer.
-*/
-.viewer-frame-mask {
-  position: relative;
-  overflow: hidden;
-}
-
-.viewer-frame-mask::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 150px !important;
-  background: var(--bg) !important;
-  pointer-events: none;
-  z-index: 9999 !important;
-  display: block !important;
-  /* box-shadow: 0 -30px 40px var(--bg); */
-  /* Deeper shadow for 90px height */
-  border-top: 2px solid red;
-  /* DIAGNOSTIC: Remove this once you see it working */
 }
