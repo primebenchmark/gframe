@@ -39,6 +39,7 @@ csrf();
 <title><?= h($formName) ?> – <?= APP_NAME ?></title>
 <link rel="stylesheet" href="/style.css">
 <style>
+  :root { --topbar-h: <?= (int)Database::getSetting('footer_height', 155) ?>px; }
   body { overflow: hidden; }
 </style>
 </head>
@@ -46,7 +47,7 @@ csrf();
 <div class="viewer-page">
   <!-- ── Iframe ─────────────────────────────────────────────────────────── -->
   <div class="viewer-iframe-wrap">
-    <div id="frameContainer" style="flex:1;display:flex;flex-direction:column;height:100%;position:relative">
+    <div id="frameContainer" style="flex:1;display:flex;flex-direction:column;height:100%">
       <iframe
         id="formIframe"
         class="viewer-iframe"
@@ -55,15 +56,6 @@ csrf();
         loading="eager"
         title="<?= h($formName) ?>"
       ></iframe>
-      <!-- Transparent overlay: blocks right-click, copy and zoom inside the iframe -->
-      <div id="iframeShield" style="
-        position:absolute;inset:0;
-        z-index:5;
-        background:transparent;
-        user-select:none;
-        -webkit-user-select:none;
-        touch-action:pan-x pan-y;
-      "></div>
     </div>
 
     <!-- ── Expired overlay ──────────────────────────────────────────────── -->
@@ -152,18 +144,15 @@ csrf();
   const interval = setInterval(tick, 1000);
 })();
 
-// ── Iframe shield: block zoom & copy ─────────────────────────────────────────
+// ── Block zoom & copy shortcuts ─────────────────────────────────────────────
 (function () {
-  const shield = document.getElementById('iframeShield');
-  if (!shield) return;
+  // Block right-click context menu on the parent page
+  document.addEventListener('contextmenu', e => e.preventDefault());
 
-  // Block right-click context menu
-  shield.addEventListener('contextmenu', e => e.preventDefault());
-
-  // Block copy via keyboard (Ctrl+C / Cmd+C)
+  // Block copy and zoom via keyboard buttons
   document.addEventListener('keydown', function (e) {
     const ctrl = e.ctrlKey || e.metaKey;
-    // Block copy
+    // Block copy (Ctrl+C)
     if (ctrl && e.key === 'c') { e.preventDefault(); return; }
     // Block zoom shortcuts: Ctrl +, Ctrl -, Ctrl 0
     if (ctrl && (e.key === '+' || e.key === '-' || e.key === '=' || e.key === '0')) {
@@ -176,7 +165,7 @@ csrf();
     if (e.ctrlKey) e.preventDefault();
   }, { passive: false });
 
-  // Block pinch-to-zoom via gesturestart (Safari)
+  // Block pinch-to-zoom (Safari/iOS)
   document.addEventListener('gesturestart', e => e.preventDefault());
 })();
 </script>

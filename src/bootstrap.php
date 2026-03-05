@@ -54,7 +54,10 @@ function navHtml(string $userName, bool $isAdmin = false): string {
         ? '<path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m11.314 11.314l.707.707M12 8a4 4 0 100 8 4 4 0 000-8z"/>' 
         : '<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>';
 
+    $h = (int)Database::getSetting('footer_height', 155);
+
     return <<<HTML
+<style>:root { --topbar-h: {$h}px; }</style>
 <nav class="nav">
   <a href="{$home}" class="nav-brand">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="fill:url(#grd)">

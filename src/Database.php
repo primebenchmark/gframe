@@ -60,7 +60,18 @@ class Database
                 form_id     INTEGER NOT NULL REFERENCES forms(id),
                 opened_at   TEXT DEFAULT (datetime('now'))
             );
+
+            CREATE TABLE IF NOT EXISTS settings (
+                key         TEXT PRIMARY KEY,
+                value       TEXT NOT NULL
+            );
         ");
+
+        // Seed default settings
+        $count = (int)$db->query("SELECT COUNT(*) FROM settings WHERE key = 'footer_height'")->fetchColumn();
+        if ($count === 0) {
+            $db->exec("INSERT INTO settings (key, value) VALUES ('footer_height', '155')");
+        }
 
         // Ensure theme column exists for existing installations
         try { $db->exec("ALTER TABLE admins ADD COLUMN theme TEXT DEFAULT 'dark'"); } catch (Exception $e) {}
@@ -217,5 +228,19 @@ class Database
         $table = $role === 'admin' ? 'admins' : 'students';
         $stmt = self::get()->prepare("UPDATE {$table} SET theme = ? WHERE id = ?");
         $stmt->execute([$theme, $id]);
+    }
+
+    public static function getSetting(string $key, $default = null): mixed
+    {
+        $stmt = self::get()->prepare("SELECT value FROM settings WHERE key = ?");
+        $stmt->execute([$key]);
+        $row = $stmt->fetch();
+        return $row ? $row['value'] : $default;
+    }
+
+    public static function setSetting(string $key, $value): void
+    {
+        $stmt = self::get()->prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)");
+        $stmt->execute([$key, (string)$value]);
     }
 }
