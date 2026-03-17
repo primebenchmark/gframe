@@ -15,6 +15,19 @@ if (!$form || !$form['active']) {
 $formName = $form['name'];
 $formUrl  = $form['url'];
 csrf();
+
+// Encrypt the form URL with AES-256-GCM so it never appears in page source.
+// A fresh random key + IV is generated per page load.
+$aesKey = random_bytes(32);          // 256-bit key
+$iv     = random_bytes(12);          // 96-bit IV (standard for GCM)
+$tag    = '';
+$ciphertext = openssl_encrypt($formUrl, 'aes-256-gcm', $aesKey, OPENSSL_RAW_DATA, $iv, $tag, '', 16);
+
+// Pass to JS as hex strings embedded in a data attribute
+$jsKey        = bin2hex($aesKey);
+$jsIv         = bin2hex($iv);
+$jsTag        = bin2hex($tag);
+$jsCiphertext = bin2hex($ciphertext);
 ?>
 <!DOCTYPE html>
 <html lang="en" data-theme="<?= getTheme() ?>">
@@ -36,11 +49,18 @@ csrf();
       <iframe
         id="formIframe"
         class="viewer-iframe"
-        src="<?= h($formUrl) ?>"
+        src="about:blank"
         allow="autoplay; camera; microphone"
         loading="eager"
         title="<?= h($formName) ?>"
       ></iframe>
+      <div id="fd"
+        data-k="<?= $jsKey ?>"
+        data-i="<?= $jsIv ?>"
+        data-t="<?= $jsTag ?>"
+        data-c="<?= $jsCiphertext ?>"
+        style="display:none"
+      ></div>
     </div>
 
   </div>
@@ -88,6 +108,31 @@ csrf();
 </div>
 
 <script>
+// ── Decrypt and load iframe src ──────────────────────────────────────────────
+(function () {
+  function hex(h) {
+    const b = new Uint8Array(h.length / 2);
+    for (let i = 0; i < b.length; i++) b[i] = parseInt(h.substr(i * 2, 2), 16);
+    return b;
+  }
+  const fd = document.getElementById('fd');
+  const k = hex(fd.dataset.k);
+  const iv = hex(fd.dataset.i);
+  const tag = hex(fd.dataset.t);
+  const ct = hex(fd.dataset.c);
+  // GCM tag is appended to ciphertext for SubtleCrypto
+  const ctWithTag = new Uint8Array(ct.length + tag.length);
+  ctWithTag.set(ct); ctWithTag.set(tag, ct.length);
+  crypto.subtle.importKey('raw', k, 'AES-GCM', false, ['decrypt'])
+    .then(function (key) {
+      return crypto.subtle.decrypt({ name: 'AES-GCM', iv: iv }, key, ctWithTag);
+    })
+    .then(function (plain) {
+      document.getElementById('formIframe').src = new TextDecoder().decode(plain);
+      fd.remove();
+    });
+})();
+
 (function () {
   let elapsed   = 0;
   const timerEl = document.getElementById('timer');
