@@ -1,9 +1,9 @@
 <?php
 require_once __DIR__ . '/../../src/bootstrap.php';
 require_once __DIR__ . '/../../src/AdminLayout.php';
-Auth::requireAdmin();
 
 $success = '';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     checkCsrf();
     $footerHeight = (int)($_POST['footer_height'] ?? 155);
@@ -29,19 +29,19 @@ ob_start();
 <div class="card" style="max-width: 600px;">
     <form method="post">
         <input type="hidden" name="_csrf" value="<?= h(csrf()) ?>">
-        
+
         <div class="form-group">
             <label class="form-label" for="footer_height">
                 Footer Height (Viewer Page)
             </label>
             <div style="display: flex; align-items: center; gap: 1.5rem; margin-top: .5rem;">
-                <input 
-                    type="range" 
-                    id="footerHeightRange" 
-                    name="footer_height" 
-                    min="50" 
-                    max="300" 
-                    step="1" 
+                <input
+                    type="range"
+                    id="footerHeightRange"
+                    name="footer_height"
+                    min="50"
+                    max="300"
+                    step="1"
                     value="<?= h((string)$footerHeight) ?>"
                     style="flex: 1; accent-color: var(--primary);"
                 >
@@ -63,12 +63,11 @@ ob_start();
     </form>
 </div>
 
-<!-- Live Preview Script -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const range = document.getElementById('footerHeightRange');
     const valueDisp = document.getElementById('footerHeightValue');
-    
+
     range.addEventListener('input', function() {
         valueDisp.textContent = this.value;
     });

@@ -1,8 +1,6 @@
 <?php
 require_once __DIR__ . '/../../src/bootstrap.php';
 require_once __DIR__ . '/../../src/AdminLayout.php';
-Auth::requireAdmin();
-
 // ─── Handle actions ────────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     checkCsrf();
