@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../src/bootstrap.php';
+require_once __DIR__ . '/../gframe_src/bootstrap.php';
 
 $forms = Database::getActiveForms();
 ?>

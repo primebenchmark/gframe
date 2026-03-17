@@ -4,7 +4,7 @@ DirectoryIndex index.php
 RewriteEngine On
 
 # ── Block access to non-public directories ─────────────────────────────────
-RewriteRule ^(src|config|database)(/|$) - [F,L]
+RewriteRule ^(gframe_src|gframe_config|gframe_database)(/|$) - [F,L]
 
 # ── Allow direct access to existing files/dirs ─────────────────────────────
 RewriteCond %{REQUEST_FILENAME} -f [OR]

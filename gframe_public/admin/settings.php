@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/../../src/bootstrap.php';
-require_once __DIR__ . '/../../src/AdminLayout.php';
+require_once __DIR__ . '/../../gframe_src/bootstrap.php';
+require_once __DIR__ . '/../../gframe_src/AdminLayout.php';
 
 $success = '';
 
