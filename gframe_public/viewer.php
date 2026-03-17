@@ -16,18 +16,25 @@ $formName = $form['name'];
 $formUrl  = $form['url'];
 csrf();
 
-// Encrypt the form URL with AES-256-GCM so it never appears in page source.
-// A fresh random key + IV is generated per page load.
-$aesKey = random_bytes(32);          // 256-bit key
-$iv     = random_bytes(12);          // 96-bit IV (standard for GCM)
-$tag    = '';
+// Generate a one-time nonce for key retrieval. The encrypted URL + key are
+// stored server-side in the session so they NEVER appear in page source.
+$aesKey     = random_bytes(32);
+$iv         = random_bytes(12);
+$tag        = '';
 $ciphertext = openssl_encrypt($formUrl, 'aes-256-gcm', $aesKey, OPENSSL_RAW_DATA, $iv, $tag, '', 16);
 
-// Pass to JS as hex strings embedded in a data attribute
-$jsKey        = bin2hex($aesKey);
-$jsIv         = bin2hex($iv);
-$jsTag        = bin2hex($tag);
-$jsCiphertext = bin2hex($ciphertext);
+$nonce = bin2hex(random_bytes(16));
+$_SESSION['frame_nonces'][$nonce] = [
+    'k' => bin2hex($aesKey),
+    'i' => bin2hex($iv),
+    't' => bin2hex($tag),
+    'c' => bin2hex($ciphertext),
+    'ts' => time(),
+];
+// Prune stale nonces (older than 5 minutes)
+foreach ($_SESSION['frame_nonces'] as $n => $d) {
+    if (time() - $d['ts'] > 300) unset($_SESSION['frame_nonces'][$n]);
+}
 ?>
 <!DOCTYPE html>
 <html lang="en" data-theme="<?= getTheme() ?>">
@@ -54,13 +61,7 @@ $jsCiphertext = bin2hex($ciphertext);
         loading="eager"
         title="<?= h($formName) ?>"
       ></iframe>
-      <div id="fd"
-        data-k="<?= $jsKey ?>"
-        data-i="<?= $jsIv ?>"
-        data-t="<?= $jsTag ?>"
-        data-c="<?= $jsCiphertext ?>"
-        style="display:none"
-      ></div>
+      <div id="fd" data-n="<?= $nonce ?>" style="display:none"></div>
     </div>
 
   </div>
@@ -108,28 +109,26 @@ $jsCiphertext = bin2hex($ciphertext);
 </div>
 
 <script>
-// ── Decrypt and load iframe src ──────────────────────────────────────────────
+// ── Fetch key from server & decrypt iframe src ──────────────────────────────
 (function () {
-  function hex(h) {
-    const b = new Uint8Array(h.length / 2);
-    for (let i = 0; i < b.length; i++) b[i] = parseInt(h.substr(i * 2, 2), 16);
-    return b;
-  }
-  const fd = document.getElementById('fd');
-  const k = hex(fd.dataset.k);
-  const iv = hex(fd.dataset.i);
-  const tag = hex(fd.dataset.t);
-  const ct = hex(fd.dataset.c);
-  // GCM tag is appended to ciphertext for SubtleCrypto
-  const ctWithTag = new Uint8Array(ct.length + tag.length);
-  ctWithTag.set(ct); ctWithTag.set(tag, ct.length);
-  crypto.subtle.importKey('raw', k, 'AES-GCM', false, ['decrypt'])
-    .then(function (key) {
-      return crypto.subtle.decrypt({ name: 'AES-GCM', iv: iv }, key, ctWithTag);
-    })
-    .then(function (plain) {
-      document.getElementById('formIframe').src = new TextDecoder().decode(plain);
-      fd.remove();
+  var _0x=['\x66\x64','\x67\x65\x74\x45\x6c\x65\x6d\x65\x6e\x74\x42\x79\x49\x64'];
+  function _h(s){var b=new Uint8Array(s.length/2);for(var i=0;i<b.length;i++)b[i]=parseInt(s.substr(i*2,2),16);return b;}
+  var el=document[_0x[1]](_0x[0]);
+  var nc=el.dataset.n;
+  el.removeAttribute('data-n');
+  fetch('/api_frame_key.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({n:nc})})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(!d.k)return;
+      var k=_h(d.k),iv=_h(d.i),tg=_h(d.t),ct=_h(d.c);
+      var buf=new Uint8Array(ct.length+tg.length);
+      buf.set(ct);buf.set(tg,ct.length);
+      return crypto.subtle.importKey('raw',k,'AES-GCM',false,['decrypt'])
+        .then(function(key){return crypto.subtle.decrypt({name:'AES-GCM',iv:iv},key,buf);})
+        .then(function(plain){
+          document[_0x[1]]('formIframe').src=new TextDecoder().decode(plain);
+          el.remove();
+        });
     });
 })();
 
